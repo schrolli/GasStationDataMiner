@@ -17,6 +17,7 @@ class apiRequests:
         self.apiKey = apiKey
         self.listRequestUrl = "https://creativecommons.tankerkoenig.de/json/list.php"
         self.detailRequestUrl = "https://creativecommons.tankerkoenig.de/json/detail.php"
+        self.pricesRequestUrl = "https://creativecommons.tankerkoenig.de/json/prices.php"
         self.logger = logging.getLogger('apiRequests')
         
     def detail(self, gasStationId):
@@ -41,6 +42,32 @@ class apiRequests:
             return self._checkResponseAndReturnJson(response)
         except Exception as e:
             self.logger.exception("Exception when requesting details for station with id %s:" % gasStationId)
+            self.logger.exception("%s" % e)
+            return None
+            
+    def prices(self, gasStationIds):
+        '''Request prices for up to 10 gasstations.
+        
+        Keyword arguments:
+        gasStationIds -- list of api ids of the gasstations, up to 10 items
+        
+        Returns: json or None
+        
+        '''
+        try:
+            self.logger.info("Building parameter for detail request")
+            stationString = json.dumps(gasStationIds)
+            payload = {'ids': stationString, 'apikey': self.apiKey}
+            #self.logger.debug("Payload: " + payload)
+            self.logger.info("Requesting details in progress...")
+            self.logger.info("url: %s" % self.pricesRequestUrl)
+            self.logger.info("payload.ids: %s" % payload["ids"])
+            self.logger.info("payload.apikey: %s" % payload["apikey"])
+            response = requests.get(self.pricesRequestUrl, params=payload)
+            self.logger.info("request done")
+            return self._checkResponseAndReturnJson(response)
+        except Exception as e:
+            self.logger.exception("Exception when requesting prices for stations with ids %s:" % gasStationIds)
             self.logger.exception("%s" % e)
             return None
             
