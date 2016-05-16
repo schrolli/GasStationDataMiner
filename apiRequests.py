@@ -7,94 +7,78 @@ import requests
 import doctest
 import logging
 import logging.config
+import json
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 logging.config.fileConfig('logging.conf')
 
-detailRequestOk = False
-
-LIST_REQUEST_URL = "https://creativecommons.tankerkoenig.de/json/list.php"
-
-DETAIL_REQUEST_URL = "https://creativecommons.tankerkoenig.de/json/detail.php"
-
-def getApiKey():
-    """" 
-    >>>getApiKey.len() > 0
-    False
-    >>>
-    """
-    logger = logging.getLogger('apiRequests')
-    logger.info("Start Reading Api Key")
-    file = open('api.key')
-    for line in file:
-        fields = line.strip().split()
-        logger.info("Reading Api Key done")
-        return fields[0]
-
-
-def detailRequest(gasStationId):
-    '''Request detail information for a gasstation.
-
-    Keyword arguments:
-    gasStationId -- api id of the gasstation
-
-    Returns: json or None
-
-    '''
-    logger = logging.getLogger('apiRequests')
-    try:
-        logger.info("Building parameter for detail request")
-        payload = {'id': gasStationId, 'apikey': getApiKey()}
-        #logger.debug("Payload: " + payload)
-        logger.info("Requesting details in progress...")
-        logger.info("url: " + DETAIL_REQUEST_URL)
-        logger.info("payload.id: " + payload["id"])
-        logger.info("payload.apikey: " + payload["apikey"])
-        response = requests.get(DETAIL_REQUEST_URL, params=payload)
-        logger.info("request done")
-        if response.ok:
-            return response.json()
-        else:
-            logger.error("Response was not ok.")
-            return None
-    except Exception as exc:
-        logger.exception("Exception when requesting details for station with id " + gasStationId)
-        return None
+class apiRequests:
+    def __init__(self, apiKey):
+        self.apiKey = apiKey
+        self.listRequestUrl = "https://creativecommons.tankerkoenig.de/json/list.php"
+        self.detailRequestUrl = "https://creativecommons.tankerkoenig.de/json/detail.php"
+        self.logger = logging.getLogger('apiRequests')
         
-def listRequest(lat, lng, rad, sort="price", type="e10"):
-    '''Request nearby gasstations.
-
-    Keyword arguments:
-    lat -- Latitude of location
-    lng -- Longitude of location
-    rad -- Radius of request
-    sort -- 
-    type --
-
-    Returns:
-     
-    '''
-    logger = logging.getLogger('apiRequests')
-    try:
-        logger.info("Building parameter for list request")
-        payload = {'lat': lat, 'lng': lng,'rad': rad,'sort': sort,'type': type, 'apikey': getApiKey()}    
-        logger.info("Requesting nearby list")
-        response = requests.get(LIST_REQUEST_URL, params=payload)
-        if response.ok:
-            return response.json()
+    def detail(self, gasStationId):
+        '''Request detail information for a gasstation.
+        
+        Keyword arguments:
+        gasStationId -- api id of the gasstation
+        
+        Returns: json or None
+        
+        '''
+        try:
+            self.logger.info("Building parameter for detail request")
+            payload = {'id': gasStationId, 'apikey': self.apiKey}
+            #logger.debug("Payload: " + payload)
+            self.logger.info("Requesting details in progress...")
+            self.logger.info("url: %s" % self.detailRequestUrl)
+            self.logger.info("payload.id: %s" % payload["id"])
+            self.logger.info("payload.apikey: %s" % payload["apikey"])
+            response = requests.get(self.detailRequestUrl, params=payload)
+            self.logger.info("request done")
+            return self._checkResponseAndReturnJson(response)
+        except Exception as e:
+            self.logger.exception("Exception when requesting details for station with id %s:" % gasStationId)
+            self.logger.exception("%s" % e)
+            return None
+            
+    def list(self, lat, lng, rad, sort="price", type="e10"):
+        '''Request nearby gasstations.
+        
+        Keyword arguments:
+        lat -- Latitude of location
+        lng -- Longitude of location
+        rad -- Radius of request
+        sort -- "distance" or "price"
+        type -- "e10", "e5", "diesel" or "all"
+        
+        Returns: json or None
+         
+        '''
+        try:
+            self.logger.info("Building parameter for list request")
+            payload = {'lat': lat, 'lng': lng,'rad': rad,'sort': sort,'type': type, 'apikey': self.apiKey}
+            self.logger.info("Requesting nearby list")
+            response = requests.get(self.listRequestUrl, params=payload)
+            self.logger.info("request done")
+            return self._checkResponseAndReturnJson(response)
+        except Exception as e:
+            self.logger.exception("Exception when requesting nearby stations:")
+            self.logger.exception("%s" % e)
+            return None
+            
+    def _checkResponseAndReturnJson(self, response):
+        try:
+            response.raise_for_status()
+        except Exception as e:
+            logger.error("Response was not ok: %s" % e)
+            return None
+        data = response.json()
+        if (data['ok'] == True):
+            return data
         else:
-           logger.error("Response was not ok.")
-           return None
-    except Exception as exc:
-        logger.exception("Exception when requesting nearby stations.")
-        return None
-
-    
-def getDetailRequestWasOk():
-    return detailRequestOk
-    
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()
-
-
+            self.logger.error("Api Error: " + data['message'])
+            return None
+            

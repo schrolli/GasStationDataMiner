@@ -16,11 +16,15 @@ import connectDb
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 logging.config.fileConfig('logging.conf')
 
+config = {}
+exec(open("main.conf").read(), config)
+
 def addStationsInLocationToDb(lat, lng, rad):
     logger = logging.getLogger('miner')
     logger.info("Requesting station list for lat: " + "{:.9f}".format(lat) + "long: " + "{:.9f}".format(lng) +  " and rad: " + "{:.9f}".format(rad))
     #Get Station data
-    stationList = apiRequests.listRequest(lat, lng, rad)["stations"]
+    api = apiRequests(config['apikey'])
+    stationList = api.list(lat, lng, rad)["stations"]
     dbHandle = connectDb.connect()
     if dbHandle is None:
         logger.critical("Cannot connect to db, exiting")
@@ -51,13 +55,14 @@ if __name__ == "__main__":
         logger.critical("Cannot connect to db, exiting")
         sys.exit("Cannot connect to db.")
     logger.info("Connect DB - getting handle successfully")
+    api = apiRequests(config['apikey'])
     try:
         #Getting a list of all stations in in the db
         stations= dbHandle.stations.find()
         for i in stations:
             #iterate trough all stations and do a detailRequest
             logger.info("Getting details for stationId = " + i["_id"])
-            detailRequestResult = apiRequests.detailRequest(i["_id"])
+            detailRequestResult = api.detail(i["_id"])
             if detailRequestResult is not None:
                 #build and add generally data to filtered result dict
                 filteredResult = dict()

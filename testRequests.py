@@ -2,7 +2,7 @@
 # Date: 03.07.2015
 # Author: dtonal - Torben Mueller <dtonal@posteo.de>
 # Summary: Modul to do first request testing.
-import apiRequests
+from apiRequests import apiRequests
 import utils
 
 import requests
@@ -12,8 +12,9 @@ import doctest
 utils.loggingMode=3
 
 try:
+    api = apiRequests('00000000-0000-0000-0000-000000000002')
     utils.logMessage("Testing detail request for gasstation with fix id")
-    jsonData=apiRequests.detailRequest("8f9a684e-975d-4856-9eb9-9cc14d241b7b")
+    jsonData=api.detail("13e6cbc0-a11d-4b81-a3d1-ae048c14aaea")
     print(type(jsonData))
     utils.logMessage("Requesting details finished.")
     if jsonData is None:
@@ -23,7 +24,7 @@ try:
         utils.logRequestResponse(jsonData)
         
     utils.logMessage("Testing list request for gasstation with fix parameters")
-    jsonData=apiRequests.listRequest("53.223546", "10.169761", "10", "price", "diesel")
+    jsonData=api.list("49.56825", "10.96341", "10", "price", "diesel")
     utils.logMessage("Requesting list finished.")
     if jsonData is None:
         utils.logMessage("Error while requesting list.")
