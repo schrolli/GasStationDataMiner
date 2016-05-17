@@ -1,6 +1,10 @@
 # GasStationDataMiner
 Mines the data from the tankerkönig-API and stores it in a local database.
-The api-key must be saved in "api.key" in the root directory.
+Copy the default-config-file "main.conf.dist" to "main.conf" and insert your api-key.
 
-Installation pymongo on Ubuntu:
-python3 -m pip install pymongo
+Python packages for main function:
+>``python3 -m pip install requests``
+
+For MongoDB support, install ``pymongo``:
+>``python3 -m pip install pymongo``
+

@@ -1,0 +1,8 @@
+### Default Config file
+
+# copy this file to "main.conf"
+
+# Key für den Zugriff auf die freie Tankerkönig-Spritpreis-API
+# Für eigenen Key bitte hier https://creativecommons.tankerkoenig.de
+# registrieren.
+apikey = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
