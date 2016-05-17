@@ -58,3 +58,6 @@ target/
 
 # Keys
 *.key
+
+# config
+main.conf
