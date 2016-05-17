@@ -10,7 +10,7 @@ import doctest
 import logging
 import logging.config
 
-import apiRequests
+from apiRequests import apiRequests
 import connectDb
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
